@@ -1,4 +1,4 @@
-import { LucideIcon, Hand, User, Heart, Sparkles, Zap, Trophy, Smile } from "lucide-react"
+import { LucideIcon, HandHeart, Users, Crown, Rocket, Flame, MessageCircleHeart, Smile } from "lucide-react"
 
 export interface UserProgress {
     communityEvents: number
@@ -36,16 +36,25 @@ export const ACHIEVEMENTS: Achievement[] = [
         id: "community-hero",
         name: "Community Hero",
         description: "Participate in 5 community service events",
-        icon: Hand,
+        icon: HandHeart,
         total: 5,
         category: "community",
         color: "text-emerald-500 bg-emerald-100",
     },
     {
+        id: "first-connection",
+        name: "First Connection",
+        description: "Make your first friend",
+        icon: Smile,
+        total: 1,
+        category: "social",
+        color: "text-indigo-500 bg-indigo-100",
+    },
+    {
         id: "social-butterfly",
         name: "Social Butterfly",
         description: "Meet 10 new people through activities",
-        icon: User,
+        icon: Users,
         total: 10,
         category: "social",
         color: "text-blue-500 bg-blue-100",
@@ -54,7 +63,7 @@ export const ACHIEVEMENTS: Achievement[] = [
         id: "host-with-most",
         name: "Host with the Most",
         description: "Host 3 activities successfully",
-        icon: Heart,
+        icon: Crown,
         total: 3,
         category: "activity",
         color: "text-rose-500 bg-rose-100",
@@ -63,7 +72,7 @@ export const ACHIEVEMENTS: Achievement[] = [
         id: "early-adopter",
         name: "Early Adopter",
         description: "Join SocialCue during the beta phase",
-        icon: Sparkles,
+        icon: Rocket,
         total: 1,
         category: "engagement",
         color: "text-purple-500 bg-purple-100",
@@ -72,7 +81,7 @@ export const ACHIEVEMENTS: Achievement[] = [
         id: "active-participant",
         name: "Active Participant",
         description: "Maintain a 7-day activity streak",
-        icon: Zap,
+        icon: Flame,
         total: 7,
         category: "engagement",
         color: "text-amber-500 bg-amber-100",
@@ -81,7 +90,7 @@ export const ACHIEVEMENTS: Achievement[] = [
         id: "friendly-face",
         name: "Friendly Face",
         description: "Send 50 messages to matches",
-        icon: Smile,
+        icon: MessageCircleHeart,
         total: 50,
         category: "social",
         color: "text-pink-500 bg-pink-100",
@@ -97,6 +106,7 @@ export function getUserAchievements(progress: UserProgress): UserAchievement[] {
                 break
             case "social":
                 if (achievement.id === "social-butterfly") currentProgress = progress.peopleMet
+                else if (achievement.id === "first-connection") currentProgress = progress.peopleMet
                 else if (achievement.id === "friendly-face") currentProgress = progress.messagesSent
                 break
             case "activity":
@@ -115,5 +125,9 @@ export function getUserAchievements(progress: UserProgress): UserAchievement[] {
             progress: effectiveProgress,
             unlocked: effectiveProgress >= achievement.total,
         }
+    }).sort((a, b) => {
+        if (a.unlocked && !b.unlocked) return -1
+        if (!a.unlocked && b.unlocked) return 1
+        return 0
     })
 }

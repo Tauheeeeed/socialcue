@@ -60,19 +60,15 @@ export function BadgeCollection({ achievements, onBack }: BadgeCollectionProps) 
                             key={badge.id}
                             onClick={() => setSelectedBadge(badge)}
                             className={`relative flex flex-col items-center gap-3 rounded-2xl border p-6 text-center transition-all hover:scale-[1.02] hover:shadow-md active:scale-[0.98] ${badge.unlocked
-                                    ? `border-current ${badge.color} bg-card`
-                                    : "border-border bg-muted/30 opacity-60 grayscale"
+                                ? `border-current ${badge.color} bg-card`
+                                : "border-border bg-muted/30 opacity-60 grayscale"
                                 }`}
                         >
                             <div
-                                className={`flex h-16 w-16 items-center justify-center rounded-full shadow-sm ${badge.unlocked ? "bg-background" : "bg-muted"
+                                className={`flex h-16 w-16 items-center justify-center rounded-full shadow-sm ${badge.unlocked ? "bg-background" : "bg-muted grayscale"
                                     }`}
                             >
-                                {badge.unlocked ? (
-                                    <badge.icon className="h-8 w-8" />
-                                ) : (
-                                    <Lock className="h-8 w-8 text-muted-foreground" />
-                                )}
+                                <badge.icon className={`h-8 w-8 ${badge.unlocked ? "" : "opacity-50"}`} />
                             </div>
 
                             <div className="flex flex-col gap-1">

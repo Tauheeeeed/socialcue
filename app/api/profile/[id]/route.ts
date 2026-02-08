@@ -31,6 +31,19 @@ export async function GET(
       interests: profileData.interests || [],
       likes: profileData.likes || [],
       dislikes: profileData.dislikes || [],
+      about: profileData.about || "Passionate about community service and meeting new people. Always up for a coffee chat or a weekend cleanup drive!",
+      stats: profileData.stats || {
+        events: 12,
+        connections: 48,
+        rating: 4.9,
+      },
+      progress: profileData.progress || {
+        communityEvents: 0,
+        peopleMet: 0,
+        activitiesHosted: 0,
+        messagesSent: 0,
+        daysActive: 0,
+      },
     });
   } catch (error) {
     console.error("Profile fetch error:", error);

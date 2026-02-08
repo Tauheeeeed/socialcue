@@ -26,12 +26,21 @@ export default async function HomePage() {
       <div className="flex-1 flex flex-col items-center justify-center p-6">
         <div className="max-w-md w-full space-y-8 animate-fade-in">
           <div className="text-center space-y-4">
+            <div className="flex justify-center mb-6">
+              <img
+                src="/logo.svg"
+                alt="SocialCue"
+                className="h-56 w-auto object-contain drop-shadow-lg"
+              />
+            </div>
+            {/* 
             <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-xl shadow-violet-500/30 mb-4">
               <Sparkles className="w-10 h-10 text-white" />
             </div>
             <h1 className="text-4xl font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent">
               SocialCue
-            </h1>
+            </h1> 
+            */}
             <p className="text-lg text-muted-foreground">
               Connect offline. Make real friendships. Live life together.
             </p>

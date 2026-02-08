@@ -10,8 +10,15 @@ import {
     Share2,
     Trophy,
     Lock,
+    Sparkles,
 } from "lucide-react"
 import { UserAchievement } from "@/lib/achievements"
+
+export interface ProfileStats {
+    events: number
+    connections: number
+    rating: number
+}
 
 interface ProfileViewProps {
     userName: string
@@ -19,6 +26,9 @@ interface ProfileViewProps {
     location: string
     category: string
     achievements: UserAchievement[]
+    stats: ProfileStats
+    about: string
+    interests: string[]
     onBack: () => void
     onViewBadges?: () => void
 }
@@ -29,6 +39,9 @@ export function ProfileView({
     location,
     category,
     achievements,
+    stats,
+    about,
+    interests,
     onBack,
     onViewBadges,
 }: ProfileViewProps) {
@@ -76,17 +89,17 @@ export function ProfileView({
 
                                 <div className="mt-6 flex w-full justify-between px-4">
                                     <div className="flex flex-col items-center">
-                                        <span className="text-xl font-bold text-foreground">12</span>
+                                        <span className="text-xl font-bold text-foreground">{stats.events}</span>
                                         <span className="text-xs text-muted-foreground">Events</span>
                                     </div>
                                     <div className="h-10 w-px bg-border" />
                                     <div className="flex flex-col items-center">
-                                        <span className="text-xl font-bold text-foreground">48</span>
+                                        <span className="text-xl font-bold text-foreground">{stats.connections}</span>
                                         <span className="text-xs text-muted-foreground">Connections</span>
                                     </div>
                                     <div className="h-10 w-px bg-border" />
                                     <div className="flex flex-col items-center">
-                                        <span className="text-xl font-bold text-foreground">4.9</span>
+                                        <span className="text-xl font-bold text-foreground">{stats.rating}</span>
                                         <span className="text-xs text-muted-foreground">Rating</span>
                                     </div>
                                 </div>
@@ -113,21 +126,17 @@ export function ProfileView({
                                 <div
                                     key={achievement.id}
                                     className={`flex flex-col items-center gap-2 rounded-2xl border p-3 text-center shadow-sm ${achievement.unlocked
-                                            ? "border-border bg-card"
-                                            : "border-dashed border-border bg-muted/50 opacity-70"
+                                        ? "border-border bg-card"
+                                        : "border-dashed border-border bg-muted/50 opacity-70"
                                         }`}
                                 >
                                     <div
                                         className={`flex h-10 w-10 items-center justify-center rounded-full ${achievement.unlocked
-                                                ? achievement.color.split(" ")[1] + " " + achievement.color.split(" ")[0]
-                                                : "bg-muted"
+                                            ? achievement.color.split(" ")[1] + " " + achievement.color.split(" ")[0]
+                                            : "bg-muted grayscale"
                                             }`}
                                     >
-                                        {achievement.unlocked ? (
-                                            <achievement.icon className="h-5 w-5" />
-                                        ) : (
-                                            <Lock className="h-5 w-5 text-muted-foreground" />
-                                        )}
+                                        <achievement.icon className={`h-5 w-5 ${achievement.unlocked ? "" : "opacity-50"}`} />
                                     </div>
                                     <span className="text-[10px] font-medium leading-tight max-w-full truncate px-1">
                                         {achievement.unlocked ? achievement.name : "Locked"}
@@ -141,8 +150,7 @@ export function ProfileView({
                     <div className="space-y-2">
                         <h3 className="text-lg font-semibold text-foreground">About Me</h3>
                         <p className="leading-relaxed text-muted-foreground">
-                            Passionate about community service and meeting new people. Always up for
-                            a coffee chat or a weekend cleanup drive!
+                            {about || "No bio yet."}
                         </p>
                     </div>
 
@@ -150,17 +158,14 @@ export function ProfileView({
                     <div className="space-y-3">
                         <h3 className="text-lg font-semibold text-foreground">Interests</h3>
                         <div className="flex flex-wrap gap-2">
-                            {[
-                                { label: "Volunteering", icon: Trophy },
-                                { label: "Social Events", icon: Calendar },
-                                { label: "Photography", icon: Settings },
-                            ].map((interest, i) => (
+                            {interests.map((interest, i) => (
                                 <div
                                     key={i}
                                     className="flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
                                 >
-                                    <interest.icon className="h-3.5 w-3.5 text-primary" />
-                                    {interest.label}
+                                    {/* Default icon if none provided/mapped */}
+                                    <Sparkles className="h-3.5 w-3.5 text-primary" />
+                                    {interest}
                                 </div>
                             ))}
                         </div>
@@ -172,10 +177,10 @@ export function ProfileView({
                             <Share2 className="h-5 w-5" />
                             Share Profile
                         </button>
-                        <button className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl py-4 font-semibold text-destructive hover:bg-destructive/10 active:scale-[0.98]">
+                        <a href="/auth/logout" className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl py-4 font-semibold text-destructive hover:bg-destructive/10 active:scale-[0.98]">
                             <LogOut className="h-5 w-5" />
                             Sign Out
-                        </button>
+                        </a>
                     </div>
                 </div>
             </div>
