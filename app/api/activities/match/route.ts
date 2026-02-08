@@ -32,22 +32,23 @@ export async function POST(request: Request) {
       include: { user: true },
     });
 
-    let matchId: string;
+    let requestId: string;
     let matchUserId: string | null = null;
 
     if (otherSearching) {
       await prisma.activityRequest.update({
         where: { id: otherSearching.id },
-        data: { status: "matched" },
+        data: { status: "matched", matchedWithUserId: userId },
       });
       const created = await prisma.activityRequest.create({
         data: {
           userId,
           sport,
           status: "matched",
+          matchedWithUserId: otherSearching.userId,
         },
       });
-      matchId = created.id;
+      requestId = created.id;
       matchUserId = otherSearching.userId;
     } else {
       const created = await prisma.activityRequest.create({
@@ -57,10 +58,10 @@ export async function POST(request: Request) {
           status: "searching",
         },
       });
-      matchId = created.id;
+      requestId = created.id;
     }
 
-    return NextResponse.json({ matchId, matchUserId });
+    return NextResponse.json({ requestId, matchUserId });
   } catch (error) {
     console.error("Activity match error:", error);
     return NextResponse.json(

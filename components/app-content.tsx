@@ -1,6 +1,5 @@
 "use client"
 
-import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { ProfileSetup } from "@/components/onboarding/profile-setup"
 
@@ -12,16 +11,7 @@ interface AppContentProps {
 export function AppContent({ user, email }: AppContentProps) {
     const router = useRouter()
 
-    useEffect(() => {
-        // Check if user has already set up their profile
-        const hasProfile = localStorage.getItem("socialcue_user_id")
-        if (hasProfile) {
-            router.replace("/categories")
-        }
-    }, [router])
-
-    // We only need to handle the profile setup step here.
-    // After setup, we redirect to the main app flow (/categories).
+    // After form submit we go to chat; server handles redirect to categories when onboarding is complete.
 
     const handleProfileNext = async (data: {
         name: string
@@ -38,7 +28,7 @@ export function AppContent({ user, email }: AppContentProps) {
             if (response.ok) {
                 const { id } = await response.json()
                 localStorage.setItem("socialcue_user_id", id)
-                router.push("/categories")
+                router.push("/chat")
             } else {
                 console.error("Failed to save profile")
             }

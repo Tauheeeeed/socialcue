@@ -66,21 +66,21 @@ export default function CategoriesPage() {
             </div>
           </div>
 
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {categories.map((cat) => (
-              <Link key={cat.href} href={cat.href}>
+              <Link key={cat.href} href={cat.href} className="block h-full">
                 <Card
-                  className={`border-2 overflow-hidden transition-all duration-200 hover:scale-[1.02] hover:shadow-xl cursor-pointer group`}
+                  className={`h-full border-2 overflow-hidden transition-all duration-200 hover:scale-[1.02] hover:shadow-xl cursor-pointer group`}
                 >
-                  <CardHeader className="flex flex-row items-center gap-4">
+                  <CardHeader className="flex flex-col items-start gap-4 p-6">
                     <div
                       className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${cat.gradient} flex items-center justify-center shadow-lg ${cat.shadow} group-hover:scale-110 transition-transform`}
                     >
                       <cat.icon className="w-7 h-7 text-white" />
                     </div>
-                    <div className="flex-1">
+                    <div className="space-y-2">
                       <CardTitle className="text-xl">{cat.title}</CardTitle>
-                      <CardDescription className="mt-1">
+                      <CardDescription className="text-sm leading-relaxed">
                         {cat.description}
                       </CardDescription>
                     </div>

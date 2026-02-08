@@ -28,12 +28,12 @@ export async function POST(request: Request) {
 
     const userMessages = chatHistory
       ? chatHistory
-          .filter((h: { role: string }) => h.role === "user")
-          .map((h: { content: string }) => h.content)
-          .join(" ")
+        .filter((h: { role: string }) => h.role === "user")
+        .map((h: { content: string }) => h.content)
+        .join(" ")
       : lastMessage || "";
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
 
     const result = await model.generateContent(
       `From this conversation where the user talked about themselves, extract keywords for their profile. Return ONLY a JSON object with these exact keys: interests (array of strings), likes (array of strings), dislikes (array of strings). Example: {"interests":["tennis","hiking","reading"],"likes":["coffee","movies"],"dislikes":["crowds"]}. User's messages: "${userMessages}"`
@@ -54,8 +54,23 @@ export async function POST(request: Request) {
         dislikes = Array.isArray(parsed.dislikes) ? parsed.dislikes : [];
       }
     } catch {
-      interests = lastMessage.split(/[\s,]+/).filter((w) => w.length > 2).slice(0, 5);
+      interests = (lastMessage || "").split(/[\s,]+/).filter((w: string) => w.length > 2).slice(0, 5);
     }
+
+    const profilePayload = { interests, likes, dislikes };
+
+    await prisma.userProfile.upsert({
+      where: { userId },
+      update: {
+        profile: profilePayload,
+        updatedAt: new Date(),
+      },
+      create: {
+        userId,
+        profile: profilePayload,
+        updatedAt: new Date(),
+      },
+    });
 
     await prisma.user.update({
       where: { id: userId },
