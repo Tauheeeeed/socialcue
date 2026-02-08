@@ -25,24 +25,49 @@ export default function ProfilePage() {
   useEffect(() => {
     const userId = localStorage.getItem("socialcue_user_id");
     if (!userId) {
-      router.replace("/intro");
+      // If no local ID, they likely haven't completed onboarding.
+      // Redirect to home (which shows onboarding if logged in).
+      router.replace("/");
       return;
     }
 
     fetch(`/api/profile/${userId}`)
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) {
+          if (res.status === 404) throw new Error("Profile not found");
+          throw new Error("Failed to load profile");
+        }
+        return res.json();
+      })
       .then((data) => {
         if (data.error) throw new Error(data.error);
         setProfile(data);
       })
-      .catch(() => router.replace("/intro"))
+      .catch((err) => {
+        console.error(err);
+        // Instead of redirecting to /intro, we'll stop loading and let the UI show empty/error state,
+        // or redirect to home.
+        router.replace("/");
+      })
       .finally(() => setLoading(false));
   }, [router]);
 
-  if (loading || !profile) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-violet-50 via-white to-fuchsia-50">
         <div className="w-16 h-16 rounded-full border-4 border-violet-200 border-t-violet-600 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-violet-50 via-white to-fuchsia-50 p-6">
+        <h1 className="text-2xl font-bold mb-4">Profile Not Found</h1>
+        <p className="text-muted-foreground mb-6">We couldn't find your profile details.</p>
+        <Button onClick={() => router.push("/")} className="w-full max-w-xs">
+          Go to Home
+        </Button>
       </div>
     );
   }
@@ -70,7 +95,7 @@ export default function ProfilePage() {
                 <div>
                   <CardTitle className="text-xl">{profile.name}</CardTitle>
                   <CardDescription>
-                    {profile.age} years • {profile.gender}
+                    {profile.age} years {profile.gender ? `• ${profile.gender}` : ""}
                   </CardDescription>
                 </div>
               </div>
@@ -137,12 +162,21 @@ export default function ProfilePage() {
             </CardContent>
           </Card>
 
-          <Button
-            className="w-full h-14 text-lg bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 shadow-lg shadow-violet-500/30"
-            onClick={() => router.push("/categories")}
-          >
-            Continue to Categories
-          </Button>
+          <div className="flex flex-col gap-3">
+            <Button
+              className="w-full h-14 text-lg bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 shadow-lg shadow-violet-500/30"
+              onClick={() => router.push("/categories")}
+            >
+              Continue to Categories
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full h-14 text-lg border-2"
+              asChild
+            >
+              <a href="/auth/logout">Logout</a>
+            </Button>
+          </div>
         </div>
       </div>
     </div>

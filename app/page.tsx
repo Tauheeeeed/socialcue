@@ -1,20 +1,25 @@
-"use client";
-
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { auth0 } from "@/lib/auth0";
+import { prisma } from "@/lib/db";
+import { AppContent } from "@/components/app-content";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Sparkles } from "lucide-react";
+import { redirect } from "next/navigation";
 
-export default function HomePage() {
-  const router = useRouter();
+export default async function HomePage() {
+  const session = await auth0.getSession();
 
-  useEffect(() => {
-    const hasProfile = localStorage.getItem("socialcue_user_id");
-    if (hasProfile) {
-      router.replace("/categories");
+  if (session) {
+    const user = await prisma.user.findUnique({
+      where: { auth0Sub: session.user.sub },
+    });
+
+    if (user) {
+      redirect("/categories");
     }
-  }, [router]);
+
+    return <AppContent user={session.user} email={session.user.email} />;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-fuchsia-50 flex flex-col">
@@ -41,19 +46,21 @@ export default function HomePage() {
             </CardHeader>
             <CardContent>
               <Button
+                asChild
                 className="w-full h-14 text-lg bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 shadow-lg shadow-violet-500/30"
-                onClick={() => router.push("/intro")}
               >
-                Get Started
+                <a href="/auth/login?screen_hint=signup">Get Started</a>
               </Button>
+              <div className="mt-4 text-center">
+                <a href="/auth/login" className="text-sm text-violet-600 hover:underline">
+                  Already have an account? Login
+                </a>
+              </div>
             </CardContent>
           </Card>
-
-          <p className="text-center text-sm text-muted-foreground">
-            Meet new people • Find activity partners • Build real connections
-          </p>
         </div>
       </div>
     </div>
   );
 }
+

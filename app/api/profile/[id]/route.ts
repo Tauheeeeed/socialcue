@@ -10,6 +10,7 @@ export async function GET(
 
     const user = await prisma.user.findUnique({
       where: { id },
+      include: { UserProfile: true },
     });
 
     if (!user) {
@@ -19,15 +20,17 @@ export async function GET(
       );
     }
 
+    const profileData = (user.UserProfile?.profile as any) || {};
+
     return NextResponse.json({
       id: user.id,
       name: user.name,
       age: user.age,
       gender: user.gender,
       location: user.location,
-      interests: user.interests,
-      likes: user.likes,
-      dislikes: user.dislikes,
+      interests: profileData.interests || [],
+      likes: profileData.likes || [],
+      dislikes: profileData.dislikes || [],
     });
   } catch (error) {
     console.error("Profile fetch error:", error);

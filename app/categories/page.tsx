@@ -4,17 +4,17 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Dumbbell, HeartHandshake } from "lucide-react";
+import { Users, Dumbbell, HeartHandshake, User } from "lucide-react";
 import Link from "next/link";
 
 export default function CategoriesPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const hasProfile = localStorage.getItem("socialcue_user_id");
-    if (!hasProfile) {
-      router.replace("/");
-    }
+    // const hasProfile = localStorage.getItem("socialcue_user_id");
+    // if (!hasProfile) {
+    //   router.replace("/");
+    // }
   }, [router]);
 
   const categories = [
@@ -48,13 +48,22 @@ export default function CategoriesPage() {
     <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-fuchsia-50">
       <div className="max-w-2xl mx-auto p-6">
         <div className="space-y-6 animate-fade-in">
-          <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent">
-              What do you want to do?
-            </h1>
-            <p className="text-muted-foreground mt-2">
-              Choose a category to connect with people
-            </p>
+          <div className="flex justify-between items-center bg-white p-4 rounded-2xl shadow-sm border mb-6">
+            <div>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent">
+                Explore
+              </h1>
+              <p className="text-muted-foreground text-sm">
+                Choose a category
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" asChild className="rounded-full">
+                <Link href="/profile">
+                  <User className="mr-2 h-4 w-4" /> Profile
+                </Link>
+              </Button>
+            </div>
           </div>
 
           <div className="space-y-4">
