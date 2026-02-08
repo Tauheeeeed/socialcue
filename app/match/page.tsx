@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { Suspense, useEffect, useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ import { ChatPreferencesButton } from "@/components/chat-preferences-button";
 
 const POLL_INTERVAL_MS = 2500;
 const SEARCH_TIMEOUT_MS = 10_000;
-const MIN_SPIN_MS = 0;
+const MIN_SPIN_MS = 3500;
 
 type Profile = {
   id: string;
@@ -70,7 +70,7 @@ function ProfileCard({
   );
 }
 
-export default function MatchPage() {
+function MatchPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const type = searchParams.get("type"); // "activities" | "meet"
@@ -494,5 +494,19 @@ export default function MatchPage() {
       <BackLink href="/categories" label="Categories" />
       <ChatPreferencesButton />
     </div>
+  );
+}
+
+export default function MatchPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-teal-50">
+          <div className="w-16 h-16 rounded-full border-4 border-emerald-200 border-t-emerald-600 animate-spin" />
+        </div>
+      }
+    >
+      <MatchPageContent />
+    </Suspense>
   );
 }

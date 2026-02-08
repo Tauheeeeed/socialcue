@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { MapPin, PartyPopper } from "lucide-react";
@@ -8,7 +8,7 @@ import { BackLink } from "@/components/back-link";
 import { ProfileButton } from "@/components/profile-button";
 import { ChatPreferencesButton } from "@/components/chat-preferences-button";
 
-export default function ActivitiesConnectedPage() {
+function ConnectedContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const matchId = searchParams.get("matchId");
@@ -76,5 +76,19 @@ export default function ActivitiesConnectedPage() {
       <BackLink href="/categories" label="Categories" />
       <ChatPreferencesButton />
     </div>
+  );
+}
+
+export default function ActivitiesConnectedPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-teal-50">
+          <div className="w-16 h-16 rounded-full border-4 border-emerald-200 border-t-emerald-600 animate-spin" />
+        </div>
+      }
+    >
+      <ConnectedContent />
+    </Suspense>
   );
 }

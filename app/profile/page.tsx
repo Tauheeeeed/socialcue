@@ -20,39 +20,43 @@ interface ProfileData {
   dislikes: string[];
 }
 
+function loadProfile(
+  setProfile: (p: ProfileData | null) => void,
+  setLoading: (l: boolean) => void,
+  router: ReturnType<typeof useRouter>
+) {
+  const userId = localStorage.getItem("socialcue_user_id");
+  if (!userId) {
+    router.replace("/");
+    return;
+  }
+  setLoading(true);
+  fetch(`/api/profile/${userId}`)
+    .then((res) => {
+      if (!res.ok) {
+        if (res.status === 404) throw new Error("Profile not found");
+        throw new Error("Failed to load profile");
+      }
+      return res.json();
+    })
+    .then((data) => {
+      if (data.error) throw new Error(data.error);
+      setProfile(data);
+    })
+    .catch((err) => {
+      console.error(err);
+      setProfile(null);
+    })
+    .finally(() => setLoading(false));
+}
+
 export default function ProfilePage() {
   const router = useRouter();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const userId = localStorage.getItem("socialcue_user_id");
-    if (!userId) {
-      // If no local ID, they likely haven't completed onboarding.
-      // Redirect to home (which shows onboarding if logged in).
-      router.replace("/");
-      return;
-    }
-
-    fetch(`/api/profile/${userId}`)
-      .then((res) => {
-        if (!res.ok) {
-          if (res.status === 404) throw new Error("Profile not found");
-          throw new Error("Failed to load profile");
-        }
-        return res.json();
-      })
-      .then((data) => {
-        if (data.error) throw new Error(data.error);
-        setProfile(data);
-      })
-      .catch((err) => {
-        console.error(err);
-        // Instead of redirecting to /intro, we'll stop loading and let the UI show empty/error state,
-        // or redirect to home.
-        router.replace("/");
-      })
-      .finally(() => setLoading(false));
+    loadProfile(setProfile, setLoading, router);
   }, [router]);
 
   if (loading) {
@@ -67,10 +71,15 @@ export default function ProfilePage() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 via-white to-sky-50 p-6">
         <h1 className="text-2xl font-bold mb-4">Profile Not Found</h1>
-        <p className="text-muted-foreground mb-6">We couldn't find your profile details.</p>
-        <Button onClick={() => router.push("/")} className="w-full max-w-xs">
-          Go to Home
-        </Button>
+        <p className="text-muted-foreground mb-6 text-center">We couldn&apos;t load your profile. You can go back or retry.</p>
+        <div className="flex flex-col gap-3 w-full max-w-xs">
+          <Button onClick={() => router.push("/categories")} className="w-full">
+            Back to Categories
+          </Button>
+          <Button variant="outline" onClick={() => loadProfile(setProfile, setLoading, router)} className="w-full">
+            Retry
+          </Button>
+        </div>
       </div>
     );
   }

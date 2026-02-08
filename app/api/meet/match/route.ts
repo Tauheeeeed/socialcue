@@ -57,8 +57,7 @@ export async function POST(request: Request) {
       match = allUsers[Math.floor(Math.random() * allUsers.length)];
     }
 
-    const meetLocation = match.location ?? requester.location;
-
+    const meetLocation = match.location ?? requester.location ?? "";
 
     const meetRequest = await prisma.meetRequest.create({
       data: {
