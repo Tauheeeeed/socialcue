@@ -18,6 +18,7 @@ model User {
   likes                 String[]      @default([])
   dislikes              String[]      @default([])
   profileReady          Boolean        @default(false)
+  acceptedGuidelines    Boolean        @default(false)
   createdAt             DateTime       @default(now())
   UserMessage           UserMessage[]
   UserProfile           UserProfile?

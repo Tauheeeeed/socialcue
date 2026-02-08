@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 
 export async function POST(request: Request) {
   try {
-    const { userId, durationMinutes, surpriseMe } = await request.json();
+    const { userId, durationMinutes, surpriseMe, surpriseLevel } = await request.json();
 
     if (!userId) {
       return NextResponse.json(
@@ -23,38 +23,98 @@ export async function POST(request: Request) {
       );
     }
 
-    let allUsers = await prisma.user.findMany({
-      where: {
-        id: { not: userId },
-        profileReady: true,
-      },
-    });
+    let match: (typeof requester) | null = null;
 
-    if (allUsers.length === 0) {
+    // 1. Surprise Me Logic (Levels 1-3)
+    if (surpriseMe) {
+      // Level 1: Low Surprise (Soft match - try to find shared interests)
+      if (surpriseLevel === 1 && requester.interests.length > 0) {
+        const usersWithInterests = await prisma.user.findMany({
+          where: {
+            id: { not: userId },
+            profileReady: true,
+            interests: { hasSome: requester.interests },
+          },
+        });
+        if (usersWithInterests.length > 0) {
+          match = usersWithInterests[Math.floor(Math.random() * usersWithInterests.length)];
+        }
+      }
+
+      // Level 3: High Surprise (Anti-match - try to find NO shared interests)
+      else if (surpriseLevel === 3 && requester.interests.length > 0) {
+        const usersWithoutInterests = await prisma.user.findMany({
+          where: {
+            id: { not: userId },
+            profileReady: true,
+            NOT: {
+              interests: { hasSome: requester.interests },
+            }
+          },
+        });
+        if (usersWithoutInterests.length > 0) {
+          match = usersWithoutInterests[Math.floor(Math.random() * usersWithoutInterests.length)];
+        }
+      }
+
+      // Level 2: Medium Surprise (Pure Random) - or fallback for 1/3
+      if (!match) {
+        // Fall through to standard random selection
+      }
+    }
+    // 2. Standard Match (Not Surprise Me) - Priorities shared interests
+    else if (requester.interests.length > 0) {
+      const usersWithInterests = await prisma.user.findMany({
+        where: {
+          id: { not: userId },
+          profileReady: true,
+          interests: { hasSome: requester.interests },
+        },
+      });
+
+      if (usersWithInterests.length > 0) {
+        match = usersWithInterests[Math.floor(Math.random() * usersWithInterests.length)];
+      }
+    }
+
+    // 3. Fallback: Any random user (for all cases)
+    if (!match) {
+      const userCount = await prisma.user.count({
+        where: {
+          id: { not: userId },
+          profileReady: true,
+        },
+      });
+
+      if (userCount > 0) {
+        const skip = Math.floor(Math.random() * userCount);
+        const randomUsers = await prisma.user.findMany({
+          where: {
+            id: { not: userId },
+            profileReady: true,
+          },
+          take: 1,
+          skip: skip,
+        });
+        if (randomUsers.length > 0) {
+          match = randomUsers[0];
+        }
+      }
+    }
+
+    // 4. Last Resort: Create Demo User if database is empty
+    if (!match) {
       const demoUser = await prisma.user.create({
         data: {
           name: "Demo User",
           age: 25,
           gender: "other",
           location: requester.location,
-          interests: requester.interests.length > 0 ? requester.interests : ["coffee", "chat"],
+          interests: ["random", "surprise"],
           profileReady: true,
         },
       });
-      allUsers = [demoUser];
-    }
-
-    let match: (typeof allUsers)[number];
-    if (!surpriseMe && requester.interests.length > 0) {
-      const withSameInterest = allUsers.filter((u: (typeof allUsers)[number]) =>
-        u.interests.some((i: string) => requester.interests.includes(i))
-      );
-      match =
-        withSameInterest.length > 0
-          ? withSameInterest[Math.floor(Math.random() * withSameInterest.length)]
-          : allUsers[Math.floor(Math.random() * allUsers.length)];
-    } else {
-      match = allUsers[Math.floor(Math.random() * allUsers.length)];
+      match = demoUser;
     }
 
     const meetLocation =
