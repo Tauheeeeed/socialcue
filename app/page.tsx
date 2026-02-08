@@ -1,68 +1,55 @@
-"use client"
+import { auth0 } from "@/lib/auth0";
+import { AppContent } from "@/components/app-content";
 
-import { useState } from "react"
-import { ProfileSetup } from "@/components/onboarding/profile-setup"
-import { AIChat } from "@/components/onboarding/ai-chat"
-import { CategorySelection } from "@/components/category-selection"
-import { MatchDeck } from "@/components/match-deck"
+export default async function Page() {
+  const session = await auth0.getSession();
 
-type Screen = "profile" | "chat" | "categories" | "matches"
-
-export default function Page() {
-  const [screen, setScreen] = useState<Screen>("profile")
-  const [userName, setUserName] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState<string>("")
-  const [isTransitioning, setIsTransitioning] = useState(false)
-
-  const transitionTo = (next: Screen) => {
-    setIsTransitioning(true)
-    setTimeout(() => {
-      setScreen(next)
-      setTimeout(() => setIsTransitioning(false), 50)
-    }, 400)
-  }
-
-  const handleProfileNext = (data: {
-    name: string
-    age: string
-    location: string
-  }) => {
-    setUserName(data.name)
-    transitionTo("chat")
-  }
-
-  const handleChatComplete = () => {
-    transitionTo("categories")
-  }
-
-  const handleCategoriesNext = (category: string) => {
-    setSelectedCategory(category)
-    transitionTo("matches")
-  }
-
-  return (
-    <main className="relative min-h-screen overflow-hidden bg-background">
-      <div
-        className={`transition-all duration-400 ease-in-out ${isTransitioning
-          ? "scale-95 opacity-0"
-          : "scale-100 opacity-100"
-          }`}
-      >
-        {screen === "profile" && <ProfileSetup onNext={handleProfileNext} />}
-        {screen === "chat" && (
-          <AIChat userName={userName} onComplete={handleChatComplete} />
-        )}
-        {screen === "categories" && (
-          <CategorySelection onNext={handleCategoriesNext} />
-        )}
-        {screen === "matches" && (
-          <MatchDeck
-            userName={userName}
-            category={selectedCategory}
-            onBack={() => transitionTo("categories")}
-          />
-        )}
+  if (!session) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-background p-6 text-center">
+        <h1 className="mb-4 text-4xl font-bold tracking-tight text-foreground">
+          SocialCue
+        </h1>
+        <p className="mb-8 max-w-md text-lg text-muted-foreground">
+          Connect with people who share your interests. Sign in to get started.
+        </p>
+        <div className="flex gap-4">
+          <a
+            href="/auth/login?screen_hint=signup"
+            className="rounded-2xl bg-secondary px-8 py-3 text-sm font-medium text-secondary-foreground hover:bg-secondary/80"
+          >
+            Sign Up
+          </a>
+          <a
+            href="/auth/login"
+            className="rounded-2xl bg-primary px-8 py-3 text-sm font-medium text-primary-foreground shadow-lg hover:shadow-xl hover:bg-primary/90"
+          >
+            Log In
+          </a>
+        </div>
       </div>
-    </main>
-  )
+    );
+  }
+
+  // Sanitize user name: If it looks like an email, try nickname or given_name, otherwise empty.
+  const user = session.user;
+  let displayName = user.name;
+
+  if (!displayName || displayName.includes("@")) {
+    if (user.nickname && !user.nickname.includes("@")) {
+      displayName = user.nickname;
+    } else if (user.given_name) {
+      displayName = user.given_name;
+    } else {
+      displayName = ""; // Force user to enter name in ProfileSetup
+    }
+  }
+
+  const sanitizedUser = {
+    ...user,
+    name: displayName,
+    email: user.email
+  };
+
+  return <AppContent user={sanitizedUser} email={user.email} />;
 }

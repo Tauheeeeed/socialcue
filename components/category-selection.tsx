@@ -9,11 +9,12 @@ import {
   Users,
   Music,
   ArrowRight,
-  Check,
+  User,
 } from "lucide-react"
 
 interface CategorySelectionProps {
   onNext: (category: string) => void
+  onProfile: () => void
 }
 
 const CATEGORIES = [
@@ -79,7 +80,7 @@ const CATEGORIES = [
   },
 ]
 
-export function CategorySelection({ onNext }: CategorySelectionProps) {
+export function CategorySelection({ onNext, onProfile }: CategorySelectionProps) {
   const [selected, setSelected] = useState<string | null>(null)
 
   const toggleCategory = (id: string) => {
@@ -89,6 +90,18 @@ export function CategorySelection({ onNext }: CategorySelectionProps) {
   return (
     <div className="flex min-h-screen flex-col bg-background px-6 py-8">
       <div className="mx-auto w-full max-w-md">
+        {/* Top Header with Profile */}
+        <div className="mb-6 flex justify-end">
+          <button
+            onClick={onProfile}
+            type="button"
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card shadow-sm transition-all hover:shadow-md active:scale-90"
+            aria-label="View Profile"
+          >
+            <User className="h-5 w-5 text-muted-foreground" />
+          </button>
+        </div>
+
         {/* Header */}
         <div className="mb-8">
           <h1 className="mb-2 text-2xl font-bold text-foreground">
@@ -127,14 +140,6 @@ export function CategorySelection({ onNext }: CategorySelectionProps) {
                   <p className="mt-0.5 text-sm text-muted-foreground">
                     {cat.description}
                   </p>
-                </div>
-                <div
-                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full transition-all ${isSelected
-                      ? "bg-primary text-primary-foreground"
-                      : "border-2 border-border bg-card"
-                    }`}
-                >
-                  {isSelected && <Check className="h-4 w-4" />}
                 </div>
               </button>
             )

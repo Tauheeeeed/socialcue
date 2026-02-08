@@ -1,11 +1,12 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { Bot, Send, Sparkles } from "lucide-react"
+import { Bot, Send, Sparkles, User } from "lucide-react"
 
 interface AIChatProps {
   userName: string
   onComplete: (interests: string[]) => void
+  onProfile: () => void
 }
 
 interface Message {
@@ -29,10 +30,11 @@ const AI_QUESTIONS = [
   },
 ]
 
-export function AIChat({ userName, onComplete }: AIChatProps) {
+export function AIChat({ userName, onComplete, onProfile }: AIChatProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [interests, setInterests] = useState<string[]>([])
+  const [inputValue, setInputValue] = useState("")
   const [isTyping, setIsTyping] = useState(true)
   const [isProcessing, setIsProcessing] = useState(false)
   const [progress, setProgress] = useState(0)
@@ -58,15 +60,26 @@ export function AIChat({ userName, onComplete }: AIChatProps) {
   }, [userName])
 
   const handleOptionSelect = (option: string) => {
+    handleResponse(option)
+  }
+
+  const handleInputSubmit = (e?: React.FormEvent) => {
+    e?.preventDefault()
+    if (!inputValue.trim() || isProcessing) return
+    handleResponse(inputValue)
+    setInputValue("")
+  }
+
+  const handleResponse = (response: string) => {
     if (isProcessing) return
 
-    const newInterests = [...interests, option]
+    const newInterests = [...interests, response]
     setInterests(newInterests)
 
     // Add user message
     const userMsg: Message = {
       id: messages.length + 1,
-      text: option,
+      text: response,
       sender: "user",
     }
     setMessages((prev) => [...prev, userMsg])
@@ -125,7 +138,15 @@ export function AIChat({ userName, onComplete }: AIChatProps) {
             {isTyping ? "typing..." : "online"}
           </p>
         </div>
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-3">
+          <button
+            onClick={onProfile}
+            type="button"
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card shadow-sm transition-all hover:shadow-md active:scale-90"
+            aria-label="View Profile"
+          >
+            <User className="h-5 w-5 text-muted-foreground" />
+          </button>
           <Sparkles className="h-5 w-5 text-primary" />
         </div>
       </header>
@@ -138,11 +159,10 @@ export function AIChat({ userName, onComplete }: AIChatProps) {
             className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
           >
             <div
-              className={`max-w-[80%] rounded-2xl px-4 py-3 text-[15px] leading-relaxed ${
-                msg.sender === "user"
-                  ? "rounded-br-md bg-primary text-primary-foreground"
-                  : "rounded-bl-md bg-card text-card-foreground shadow-sm"
-              }`}
+              className={`max-w-[80%] rounded-2xl px-4 py-3 text-[15px] leading-relaxed ${msg.sender === "user"
+                ? "rounded-br-md bg-primary text-primary-foreground"
+                : "rounded-bl-md bg-card text-card-foreground shadow-sm"
+                }`}
             >
               {msg.text}
             </div>
@@ -181,25 +201,45 @@ export function AIChat({ userName, onComplete }: AIChatProps) {
               {progress}% complete
             </p>
           </div>
-        ) : !isTyping && currentQuestion < AI_QUESTIONS.length ? (
-          <div className="flex flex-wrap gap-2">
-            {AI_QUESTIONS[currentQuestion].options.map((option) => (
-              <button
-                key={option}
-                type="button"
-                onClick={() => handleOptionSelect(option)}
-                className="rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground shadow-sm transition-all hover:border-primary hover:bg-primary/5 active:scale-95"
-              >
-                {option}
-              </button>
-            ))}
-          </div>
         ) : (
-          <div className="flex items-center gap-2 rounded-2xl border border-border bg-card px-4 py-3">
-            <span className="flex-1 text-sm text-muted-foreground">
-              Waiting for Cue...
-            </span>
-            <Send className="h-4 w-4 text-muted-foreground/40" />
+          <div className="space-y-4">
+            {/* Options */}
+            {!isTyping && currentQuestion < AI_QUESTIONS.length && (
+              <div className="flex flex-wrap gap-2">
+                {AI_QUESTIONS[currentQuestion].options.map((option) => (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => handleOptionSelect(option)}
+                    className="rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground shadow-sm transition-all hover:border-primary hover:bg-primary/5 active:scale-95"
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Input */}
+            <form
+              onSubmit={handleInputSubmit}
+              className="flex items-center gap-2 rounded-2xl border border-border bg-card px-4 py-2 shadow-sm focus-within:border-primary focus-within:ring-1 focus-within:ring-primary"
+            >
+              <input
+                type="text"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                placeholder="Type your answer..."
+                className="flex-1 bg-transparent py-2 text-sm outline-none placeholder:text-muted-foreground"
+                disabled={isTyping || isProcessing}
+              />
+              <button
+                type="submit"
+                disabled={!inputValue.trim() || isTyping || isProcessing}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground transition-all hover:opacity-90 disabled:opacity-50"
+              >
+                <Send className="h-4 w-4" />
+              </button>
+            </form>
           </div>
         )}
       </div>

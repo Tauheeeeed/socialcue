@@ -7,16 +7,21 @@ import {
   Users,
   ChevronLeft,
   ChevronRight,
-  Heart,
+  User,
+  Check,
   X,
   Star,
-  User,
+  Loader2,
 } from "lucide-react"
 
 interface MatchDeckProps {
   userName: string
+  age: string
+  location: string
   category: string
   onBack: () => void
+  onProfile: () => void
+  onMatchFound?: (matchName: string) => void
 }
 
 const MATCHES: Record<string, any[]> = {
@@ -203,40 +208,87 @@ const MATCHES: Record<string, any[]> = {
 };
 
 
+
+function MeCard({ userName, category, age, location }: { userName: string; category: string; age: string; location: string }) {
+  return (
+    <div className="hidden w-64 flex-col items-center justify-center gap-4 rounded-3xl border border-border bg-card p-6 shadow-sm transition-all hover:shadow-md lg:flex">
+      <div className="relative">
+        <div className="flex h-24 w-24 items-center justify-center rounded-full bg-secondary shadow-inner">
+          <User className="h-10 w-10 text-muted-foreground/50" />
+        </div>
+        <div className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md ring-4 ring-background">
+          <Star className="h-4 w-4 fill-current" />
+        </div>
+      </div>
+
+      <div className="text-center">
+        <h3 className="text-lg font-bold text-foreground">{userName}, {age}</h3>
+        <p className="text-sm text-muted-foreground">Looking for {category}</p>
+      </div>
+
+      <div className="mt-2 w-full space-y-3">
+        <div className="flex items-center gap-3 text-sm text-muted-foreground">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <MapPin className="h-4 w-4" />
+          </div>
+          <span className="truncate">{location || "Location not set"}</span>
+        </div>
+        <div className="flex items-center gap-3 text-sm text-muted-foreground">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <Clock className="h-4 w-4" />
+          </div>
+          <span className="truncate">Free Weekends</span>
+        </div>
+      </div>
+
+      <div className="mt-4 w-full rounded-xl bg-muted/50 p-3 text-center text-xs text-muted-foreground">
+        "Ready to explore new activities!"
+      </div>
+    </div>
+  )
+}
+
 function GhostSlot({
   label,
   side,
+  isSearching = false,
 }: {
   label: string
   side: "left" | "right"
+  isSearching?: boolean
 }) {
   return (
     <div
       className={`hidden w-48 flex-col items-center gap-3 lg:flex ${side === "left" ? "items-end" : "items-start"
         }`}
     >
-      <div className="flex h-20 w-20 items-center justify-center rounded-2xl border-2 border-dashed border-border bg-muted/50">
-        <User className="h-8 w-8 text-muted-foreground/30" />
+      <div className={`flex h-20 w-20 items-center justify-center rounded-2xl border-2 border-dashed border-border bg-muted/50 transition-all ${isSearching ? "border-primary/50 bg-primary/5" : ""}`}>
+        {isSearching ? (
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        ) : (
+          <User className="h-8 w-8 text-muted-foreground/30" />
+        )}
       </div>
-      <span className="text-xs font-semibold uppercase tracking-widest text-muted-foreground/40">
-        {label}
+      <span className={`text-xs font-semibold uppercase tracking-widest transition-colors ${isSearching ? "text-primary animate-pulse" : "text-muted-foreground/40"}`}>
+        {isSearching ? "SEARCHING..." : label}
       </span>
       <div className="space-y-2">
-        <div className="h-2 w-24 rounded-full bg-muted" />
-        <div className="h-2 w-16 rounded-full bg-muted" />
-        <div className="h-2 w-20 rounded-full bg-muted" />
+        <div className={`h-2 w-24 rounded-full transition-colors ${isSearching ? "bg-primary/20 animate-pulse" : "bg-muted"}`} />
+        <div className={`h-2 w-16 rounded-full transition-colors ${isSearching ? "bg-primary/20 animate-pulse delay-75" : "bg-muted"}`} />
+        <div className={`h-2 w-20 rounded-full transition-colors ${isSearching ? "bg-primary/20 animate-pulse delay-150" : "bg-muted"}`} />
       </div>
     </div>
   )
 }
 
-export function MatchDeck({ userName, category, onBack }: MatchDeckProps) {
+export function MatchDeck({ userName, age, location, category, onBack, onProfile, onMatchFound }: MatchDeckProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
 
   const matches = MATCHES[category] || MATCHES["social"] // Fallback
   const currentMatch = matches[currentIndex]
   const [direction, setDirection] = useState<"left" | "right" | null>(null)
   const [isAnimating, setIsAnimating] = useState(false)
+  const [isSearching, setIsSearching] = useState(false)
   const cardRef = useRef<HTMLDivElement>(null)
 
 
@@ -251,6 +303,24 @@ export function MatchDeck({ userName, category, onBack }: MatchDeckProps) {
       setDirection(null)
       setIsAnimating(false)
     }, 350)
+  }
+
+  const handleConfirm = () => {
+    if (isAnimating || isSearching) return
+    setIsSearching(true)
+
+    // Simulate finding a match
+    setTimeout(() => {
+      setIsSearching(false)
+      // Call the callback to transition to chat
+      if (onMatchFound) {
+        onMatchFound(currentMatch.title)
+      } else {
+        // Fallback if prop not provided (though it should be)
+        alert(`It's a match! You're going to ${currentMatch.title}!`)
+        setCurrentIndex((prev) => (prev + 1) % matches.length)
+      }
+    }, 2000)
   }
 
   return (
@@ -272,15 +342,24 @@ export function MatchDeck({ userName, category, onBack }: MatchDeckProps) {
             </p>
           </div>
         </div>
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
-          <Star className="h-5 w-5" />
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onProfile}
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card shadow-sm transition-all hover:shadow-md active:scale-90"
+            aria-label="View Profile"
+          >
+            <User className="h-5 w-5 text-muted-foreground" />
+          </button>
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
+            <Star className="h-5 w-5" />
+          </div>
         </div>
       </header>
 
       {/* Card Stack Area */}
       <div className="flex flex-1 items-center justify-center gap-8 px-6 py-4">
-        {/* Left Ghost - ME */}
-        <GhostSlot label="ME" side="left" />
+        {/* Left Side - ME Card */}
+        <MeCard userName={userName} age={age} location={location} category={category} />
 
         {/* Card Stack */}
         <div className="relative h-[420px] w-full max-w-sm">
@@ -351,9 +430,9 @@ export function MatchDeck({ userName, category, onBack }: MatchDeckProps) {
               </div>
             )}
             {direction === "right" && (
-              <div className="absolute inset-0 flex items-center justify-center rounded-3xl bg-primary/10">
-                <span className="rounded-xl border-2 border-primary px-4 py-2 text-lg font-bold text-primary">
-                  JOIN
+              <div className="absolute inset-0 flex items-center justify-center rounded-3xl bg-destructive/10">
+                <span className="rounded-xl border-2 border-destructive px-4 py-2 text-lg font-bold text-destructive">
+                  PASS
                 </span>
               </div>
             )}
@@ -361,7 +440,7 @@ export function MatchDeck({ userName, category, onBack }: MatchDeckProps) {
         </div>
 
         {/* Right Ghost - MATCH */}
-        <GhostSlot label="MATCH" side="right" />
+        <GhostSlot label="MATCH" side="right" isSearching={isSearching} />
       </div>
 
       {/* Action Buttons */}
@@ -390,36 +469,37 @@ export function MatchDeck({ userName, category, onBack }: MatchDeckProps) {
 
         <button
           type="button"
-          onClick={() => swipe("right")}
-          disabled={isAnimating}
-          className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-primary/20 bg-card shadow-md transition-all hover:border-primary hover:bg-primary/5 active:scale-90"
-          aria-label="Join this match"
+          onClick={handleConfirm}
+          disabled={isAnimating || isSearching}
+          className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-green-500/20 bg-card shadow-md transition-all hover:border-green-500 hover:bg-green-500/5 active:scale-90"
+          aria-label="Confirm this match"
         >
-          <Heart className="h-7 w-7 text-primary" />
+          <Check className="h-7 w-7 text-green-500" />
         </button>
       </div>
 
-      {/* Card counter */}
-      <div className="pb-6 text-center text-xs text-muted-foreground">
-        {currentIndex + 1} of {matches.length} matches
-      </div>
 
-      {/* Mobile ghost slots */}
+      {/* Mobile Me Card Preview */}
       <div className="flex justify-between px-6 pb-8 lg:hidden">
         <div className="flex flex-col items-center gap-2">
-          <div className="flex h-14 w-14 items-center justify-center rounded-xl border-2 border-dashed border-border bg-muted/50">
-            <User className="h-6 w-6 text-muted-foreground/30" />
+          <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl border border-border bg-card shadow-sm">
+            <User className="h-6 w-6 text-muted-foreground/50" />
+            <div className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground shadow-sm ring-2 ring-background">
+              <Star className="h-2.5 w-2.5 fill-current" />
+            </div>
           </div>
-          <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/40">
-            ME
+          <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+            YOU
           </span>
         </div>
+
+        {/* Right side ghost remains simple */}
         <div className="flex flex-col items-center gap-2">
-          <div className="flex h-14 w-14 items-center justify-center rounded-xl border-2 border-dashed border-border bg-muted/50">
-            <User className="h-6 w-6 text-muted-foreground/30" />
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl border-2 border-dashed border-border bg-muted/50">
+            <div className="h-8 w-8 rounded-full bg-muted" />
           </div>
           <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/40">
-            MATCH
+            NEXT
           </span>
         </div>
       </div>
@@ -433,3 +513,4 @@ export function MatchDeck({ userName, category, onBack }: MatchDeckProps) {
     </div>
   )
 }
+

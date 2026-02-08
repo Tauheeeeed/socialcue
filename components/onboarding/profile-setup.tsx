@@ -5,10 +5,12 @@ import { User, Camera, ArrowRight } from "lucide-react"
 
 interface ProfileSetupProps {
   onNext: (data: { name: string; age: string; location: string }) => void
+  initialName?: string
+  email?: string
 }
 
-export function ProfileSetup({ onNext }: ProfileSetupProps) {
-  const [name, setName] = useState("")
+export function ProfileSetup({ onNext, initialName = "", email }: ProfileSetupProps) {
+  const [name, setName] = useState(initialName)
   const [age, setAge] = useState("")
   const [location, setLocation] = useState("")
 
@@ -29,6 +31,11 @@ export function ProfileSetup({ onNext }: ProfileSetupProps) {
           <p className="text-base text-muted-foreground">
             {"Let's set up your profile to get started"}
           </p>
+          {email && (
+            <div className="mt-4 inline-flex items-center rounded-full bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground">
+              Signed in as {email}
+            </div>
+          )}
         </div>
 
         {/* Avatar */}
