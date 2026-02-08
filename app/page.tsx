@@ -12,13 +12,23 @@ export default async function HomePage() {
   if (session) {
     const user = await prisma.user.findUnique({
       where: { auth0Sub: session.user.sub },
+      include: { UserProfile: true },
     });
 
-    if (user) {
+    // Only send to categories when onboarding is complete: user exists + chat done (profile has interests)
+    const profileData = (user?.UserProfile?.profile as { interests?: string[] } | null) ?? {};
+    const hasInterests = Array.isArray(profileData.interests) && profileData.interests.length > 0;
+    if (user && hasInterests) {
       redirect("/categories");
     }
 
-    return <AppContent user={session.user} email={session.user.email} />;
+    // Form not filled: no user in DB → show form
+    if (!user) {
+      return <AppContent user={session.user} email={session.user.email} />;
+    }
+
+    // Form done, chat not done → go to chat
+    redirect("/chat");
   }
 
   return (

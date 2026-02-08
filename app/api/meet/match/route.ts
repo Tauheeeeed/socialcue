@@ -1,10 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
-// Mock location - in production use real geolocation
-const DEFAULT_LAT = 47.6062;
-const DEFAULT_LNG = -122.3321;
-
 export async function POST(request: Request) {
   try {
     const { userId, durationMinutes, surpriseMe } = await request.json();
@@ -27,13 +23,6 @@ export async function POST(request: Request) {
       );
     }
 
-    await prisma.user.update({
-      where: { id: userId },
-      data: {
-        freeUntil: new Date(Date.now() + (durationMinutes || 60) * 60 * 1000),
-      },
-    });
-
     let allUsers = await prisma.user.findMany({
       where: {
         id: { not: userId },
@@ -55,44 +44,36 @@ export async function POST(request: Request) {
       allUsers = [demoUser];
     }
 
-    let match = allUsers[Math.floor(Math.random() * allUsers.length)];
-
-    if (!surpriseMe && requester.interests.length > 0 && allUsers.length > 1) {
-      const withOverlap = allUsers.filter((u) =>
-        u.interests.some((i) => requester.interests.includes(i))
+    let match: (typeof allUsers)[number];
+    if (!surpriseMe && requester.interests.length > 0) {
+      const withSameInterest = allUsers.filter((u: (typeof allUsers)[number]) =>
+        u.interests.some((i: string) => requester.interests.includes(i))
       );
-      if (withOverlap.length > 0) {
-        match = withOverlap[Math.floor(Math.random() * withOverlap.length)];
-      }
+      match =
+        withSameInterest.length > 0
+          ? withSameInterest[Math.floor(Math.random() * withSameInterest.length)]
+          : allUsers[Math.floor(Math.random() * allUsers.length)];
+    } else {
+      match = allUsers[Math.floor(Math.random() * allUsers.length)];
     }
 
-    if (!match) {
-      return NextResponse.json(
-        { error: "No one available right now. Try again later!" },
-        { status: 404 }
-      );
-    }
-
-    const meetLat = ((requester.latitude ?? DEFAULT_LAT) + (match.latitude ?? DEFAULT_LAT)) / 2;
-    const meetLng = ((requester.longitude ?? DEFAULT_LNG) + (match.longitude ?? DEFAULT_LNG)) / 2;
-    const meetLocation = `${requester.location} & ${match.location} midpoint`;
+    const meetLocation =
+      [requester.location, match.location].filter(Boolean).join(" & ") || "Meet up";
 
     const meetRequest = await prisma.meetRequest.create({
       data: {
         requesterId: userId,
         receiverId: match.id,
         meetLocation,
-        meetLat,
-        meetLng,
-        durationMinutes: durationMinutes || 60,
-        surpriseMe: surpriseMe || false,
+        durationMinutes: durationMinutes ?? 60,
+        surpriseMe: surpriseMe ?? false,
         status: "accepted",
       },
     });
 
     return NextResponse.json({
       matchId: meetRequest.id,
-      matchName: match.name,
+      matchName: match.name ?? "Someone",
       meetLocation,
     });
   } catch (error) {

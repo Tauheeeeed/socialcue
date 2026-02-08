@@ -16,11 +16,13 @@ export async function POST(request: Request) {
 
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
 
-    const systemPrompt = `You are a friendly AI helping someone create their SocialCue profile. Be brief.
-1. Ask ONE short question to learn their main interests, likes, and dislikes (e.g. "What do you enjoy? Any likes or dislikes?").
-2. Keep every reply to 1-2 short sentences.
-3. As soon as they share anything substantive (interests, hobbies, likes, or dislikes), thank them briefly and end your message with exactly: [PROFILE_READY]
-4. Do not drag the conversation out. One good answer is enough.`;
+    const systemPrompt = `You are a friendly onboarding bot. Ask exactly ONE short question per message. Rules:
+1. One question only, 1-2 sentences max. No long intros or yapping.
+2. Ask about: interests/hobbies, then likes, then dislikes (3-4 questions total).
+3. After the user has answered 3-4 questions, your next reply must end with exactly: [PROFILE_READY]
+4. When ending, say something like "Got it, we're all set!" then [PROFILE_READY] on the same line.
+
+Example flow: "What are your top 2–3 hobbies or interests?" → user answers → "What do you like? (e.g. coffee, movies)" → → "Anything you dislike?" → "Got it! [PROFILE_READY]"`;
 
     let chatHistory = history.map((h: { role: string; content: string }) => ({
       role: h.role === "user" ? "user" : "model",
@@ -36,6 +38,16 @@ export async function POST(request: Request) {
       ];
     } else {
       chatHistory = trimmed;
+    }
+
+    const userMessageCount = history.filter((h: { role: string }) => h.role === "user").length;
+    const forceEnd = userMessageCount >= 3; // end after 3 user answers (3–4 questions total)
+
+    if (forceEnd) {
+      return NextResponse.json({
+        reply: "Got it, we're all set!",
+        profileReady: true,
+      });
     }
 
     const chat = model.startChat({

@@ -8,20 +8,35 @@ datasource db {
 }
 
 model User {
-  id               String            @id @default(cuid())
-  auth0Sub         String?           @unique
-  name             String?
-  age              Int?
-  gender           String?
-  location         String?
-  interests        String[]          @default([])
-  likes            String[]          @default([])
-  dislikes         String[]          @default([])
-  profileReady     Boolean           @default(false)
-  createdAt        DateTime          @default(now())
-  UserMessage      UserMessage[]
-  UserProfile      UserProfile?
-  ActivityRequest  ActivityRequest[]
+  id                    String         @id @default(cuid())
+  auth0Sub              String?        @unique
+  name                  String?
+  age                   Int?
+  gender                String?
+  location              String?
+  interests             String[]      @default([])
+  likes                 String[]      @default([])
+  dislikes              String[]      @default([])
+  profileReady          Boolean        @default(false)
+  createdAt             DateTime       @default(now())
+  UserMessage           UserMessage[]
+  UserProfile           UserProfile?
+  ActivityRequest       ActivityRequest[]
+  MeetRequestsSent      MeetRequest[]  @relation("MeetRequester")
+  MeetRequestsReceived  MeetRequest[]  @relation("MeetReceiver")
+}
+
+model MeetRequest {
+  id              String   @id @default(cuid())
+  requesterId     String
+  receiverId      String
+  meetLocation    String
+  durationMinutes Int      @default(60)
+  surpriseMe      Boolean  @default(false)
+  status          String   @default("accepted")
+  createdAt       DateTime @default(now())
+  requester       User     @relation("MeetRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  receiver        User     @relation("MeetReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
 }
 
 model ActivityRequest {
