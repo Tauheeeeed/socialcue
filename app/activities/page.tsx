@@ -37,6 +37,7 @@ type MatchView = {
   sport: string;
   currentUser: Profile;
   matchUser: Profile;
+  requestId: string;
 };
 
 function ProfileCard({
@@ -50,11 +51,10 @@ function ProfileCard({
 }) {
   return (
     <Card
-      className={`h-full border-2 ${
-        variant === "highlight"
-          ? "border-emerald-400 shadow-lg shadow-emerald-500/20"
-          : "border-emerald-100"
-      }`}
+      className={`h-full border-2 ${variant === "highlight"
+        ? "border-emerald-400 shadow-lg shadow-emerald-500/20"
+        : "border-emerald-100"
+        }`}
     >
       <CardHeader className="pb-2">
         <div className="flex items-center gap-2">
@@ -65,7 +65,12 @@ function ProfileCard({
         </div>
       </CardHeader>
       <CardContent className="space-y-2 text-sm">
-        {profile.name && <p className="font-medium">{profile.name}</p>}
+        {profile.name && (
+          <p className="font-medium">
+            {profile.name}
+            {profile.age ? <span className="text-muted-foreground font-normal">, {profile.age}</span> : ""}
+          </p>
+        )}
         {profile.location && (
           <p className="flex items-center gap-1.5 text-muted-foreground">
             <MapPin className="w-4 h-4 flex-shrink-0" />
@@ -111,11 +116,11 @@ export default function ActivitiesPage() {
     return res.json();
   };
 
-  const applyMatch = async (sport: string, matchUserId: string, matchUserPayload: Profile | null) => {
+  const applyMatch = async (sport: string, matchUserId: string, matchUserPayload: Profile | null, reqId: string) => {
     const current = await fetchProfile(userId!);
     const matchUser = matchUserPayload ?? (await fetchProfile(matchUserId));
     if (current && matchUser) {
-      setMatch({ sport, currentUser: current, matchUser });
+      setMatch({ sport, currentUser: current, matchUser, requestId: reqId });
     }
     setFindingSport(null);
     setRequestId(null);
@@ -135,7 +140,7 @@ export default function ActivitiesPage() {
         if (data.status === "matched" && data.matchUserId) {
           if (pollRef.current) clearInterval(pollRef.current);
           if (timeoutRef.current) clearTimeout(timeoutRef.current);
-          await applyMatch(findingSport, data.matchUserId, data.matchUser ?? null);
+          await applyMatch(findingSport, data.matchUserId, data.matchUser ?? null, requestId);
         }
       } catch {
         // ignore poll errors
@@ -171,7 +176,7 @@ export default function ActivitiesPage() {
       if (data.error) throw new Error(data.error);
 
       if (data.matchUserId) {
-        await applyMatch(sport, data.matchUserId, null);
+        await applyMatch(sport, data.matchUserId, null, data.requestId);
         return;
       }
 
@@ -216,19 +221,27 @@ export default function ActivitiesPage() {
               </Card>
               <ProfileCard profile={match.matchUser} title="Match" variant="highlight" />
             </div>
-            <div className="flex gap-3">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setMatch(null);
-                  setSearchError(null);
-                }}
-              >
-                Find another
-              </Button>
-              <Link href="/categories">
-                <Button>Back to Categories</Button>
+            <div className="flex flex-col gap-3">
+              <Link href={`/activities/connected?matchId=${match.requestId}`}>
+                <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-500/20" size="lg">
+                  Start Chatting & Meet Up 🚀
+                </Button>
               </Link>
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => {
+                    setMatch(null);
+                    setSearchError(null);
+                  }}
+                >
+                  Find another
+                </Button>
+                <Link href="/categories" className="flex-1">
+                  <Button variant="secondary" className="w-full">Back to Categories</Button>
+                </Link>
+              </div>
             </div>
           </div>
         ) : (

@@ -17,6 +17,7 @@ export function AppContent({ user, email }: AppContentProps) {
         name: string
         age: string
         location: string
+        gender: string
         acceptedGuidelines: boolean
     }) => {
         try {

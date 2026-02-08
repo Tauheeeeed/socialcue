@@ -28,6 +28,7 @@ export async function GET(
       age: user.age,
       gender: user.gender,
       location: user.location,
+      acceptedGuidelines: user.acceptedGuidelines,
       interests: profileData.interests || [],
       likes: profileData.likes || [],
       dislikes: profileData.dislikes || [],

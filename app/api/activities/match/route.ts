@@ -36,9 +36,23 @@ export async function POST(request: Request) {
     let matchUserId: string | null = null;
 
     if (otherSearching) {
+      // Create MeetRequest for chat
+      const meet = await prisma.meetRequest.create({
+        data: {
+          requesterId: userId,
+          receiverId: otherSearching.userId,
+          meetLocation: "TBD", // Will be updated later or derived
+          status: "accepted",
+        },
+      });
+
       await prisma.activityRequest.update({
         where: { id: otherSearching.id },
-        data: { status: "matched", matchedWithUserId: userId },
+        data: {
+          status: "matched",
+          matchedWithUserId: userId,
+          meetRequestId: meet.id,
+        },
       });
       const created = await prisma.activityRequest.create({
         data: {
@@ -46,6 +60,7 @@ export async function POST(request: Request) {
           sport,
           status: "matched",
           matchedWithUserId: otherSearching.userId,
+          meetRequestId: meet.id,
         },
       });
       requestId = created.id;

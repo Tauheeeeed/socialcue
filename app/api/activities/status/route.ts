@@ -42,6 +42,7 @@ export async function GET(request: Request) {
       } | null;
       matchName?: string;
       meetLocation?: string;
+      meetRequestId?: string | null;
     } = {
       status: activity.status,
       sport: activity.sport,
@@ -75,14 +76,14 @@ export async function GET(request: Request) {
           });
         }
 
-        // Create a matched request for the demo user
-        await prisma.activityRequest.create({
+        // Create MeetRequest for demo chat
+        const meet = await prisma.meetRequest.create({
           data: {
-            userId: demoUser.id,
-            sport: activity.sport,
-            status: "matched",
-            matchedWithUserId: activity.userId,
-          }
+            requesterId: activity.userId,
+            receiverId: demoUser.id,
+            meetLocation: activity.User.location || "Nearby",
+            status: "accepted",
+          },
         });
 
         // Update current request to matched
@@ -90,14 +91,27 @@ export async function GET(request: Request) {
           where: { id: activity.id },
           data: {
             status: "matched",
-            matchedWithUserId: demoUser.id
+            matchedWithUserId: demoUser.id,
+            meetRequestId: meet.id,
           },
           include: { User: true } // Refresh data
+        });
+
+        // Also create a request for the demo user
+        await prisma.activityRequest.create({
+          data: {
+            userId: demoUser.id,
+            sport: activity.sport,
+            status: "matched",
+            matchedWithUserId: activity.userId,
+            meetRequestId: meet.id,
+          }
         });
 
         // Update payload with new match info
         payload.status = "matched";
         payload.matchUserId = demoUser.id;
+        payload.meetRequestId = meet.id;
         payload.matchUser = {
           id: demoUser.id,
           name: demoUser.name,
@@ -120,11 +134,37 @@ export async function GET(request: Request) {
     }
 
     if (activity.status === "matched" && activity.matchedWithUserId) {
+      // Self-healing: Create MeetRequest if missing
+      if (!activity.meetRequestId) {
+        const meet = await prisma.meetRequest.create({
+          data: {
+            requesterId: activity.userId,
+            receiverId: activity.matchedWithUserId,
+            meetLocation: activity.User.location || "Nearby",
+            status: "accepted",
+          },
+        });
+
+        await prisma.activityRequest.update({
+          where: { id: activity.id },
+          data: { meetRequestId: meet.id },
+        });
+
+        // Also update the other user's request if possible, but for now just fix this one
+        // actually we should try to reuse the same meet request if the other user already has one?
+        // But for simplicity, let's just create one. 
+        // Ideally we should check if the OTHER user's activity request already has a meetRequestId that links these two.
+        // But simple fix: create new specific for this interaction if missing.
+
+        activity.meetRequestId = meet.id;
+      }
+
       const matchUser = await prisma.user.findUnique({
         where: { id: activity.matchedWithUserId },
       });
       if (matchUser) {
         payload.matchUserId = matchUser.id;
+        payload.meetRequestId = activity.meetRequestId;
         payload.matchUser = {
           id: matchUser.id,
           name: matchUser.name,

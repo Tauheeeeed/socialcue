@@ -10,7 +10,7 @@ export const POST = async (req: Request) => {
         }
 
         const data = await req.json();
-        const { name, age, location, acceptedGuidelines } = data;
+        const { name, age, location, gender, acceptedGuidelines } = data;
 
         // Upsert User
         const user = await prisma.user.upsert({
@@ -19,6 +19,7 @@ export const POST = async (req: Request) => {
                 name,
                 age: parseInt(age),
                 location,
+                gender,
                 profileReady: true,
                 acceptedGuidelines: acceptedGuidelines || false,
             },
@@ -27,6 +28,7 @@ export const POST = async (req: Request) => {
                 name,
                 age: parseInt(age),
                 location,
+                gender,
                 profileReady: true,
                 acceptedGuidelines: acceptedGuidelines || false,
             },

@@ -6,16 +6,26 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { MapPin, PartyPopper } from "lucide-react";
 import Link from "next/link";
+import { ChatRoom } from "@/components/chat-room";
 
 export default function ActivitiesConnectedPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const matchId = searchParams.get("matchId");
+
+  const [showChat, setShowChat] = useState(false);
   const [data, setData] = useState<{
     matchName: string;
     sport: string;
     meetLocation: string;
+    meetRequestId?: string;
+    userName?: string;
+    matchUser?: {
+      name: string | null;
+      age: number | null;
+    };
   } | null>(null);
+
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -43,6 +53,17 @@ export default function ActivitiesConnectedPage() {
     );
   }
 
+  if (showChat && data?.meetRequestId) {
+    return (
+      <ChatRoom
+        userName={data.userName || "Me"}
+        matchName={data.matchName}
+        matchId={data.meetRequestId}
+        onBack={() => setShowChat(false)}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 flex flex-col items-center justify-center p-6">
       <div className="max-w-md w-full space-y-6 animate-fade-in text-center">
@@ -50,11 +71,24 @@ export default function ActivitiesConnectedPage() {
           <PartyPopper className="w-10 h-10 text-white" />
         </div>
         <h1 className="text-3xl font-bold">You&apos;re connected!</h1>
-        <p className="text-xl text-muted-foreground">
-          You&apos;re playing <span className="font-bold text-emerald-600">{data.sport}</span> with{" "}
-          <span className="font-bold">{data.matchName}</span> at{" "}
-          <span className="font-bold">{data.meetLocation}</span>!
-        </p>
+
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-emerald-100">
+          <p className="text-xl text-muted-foreground mb-2">
+            You&apos;re playing <span className="font-bold text-emerald-600">{data.sport}</span> with
+          </p>
+          <div className="flex flex-col items-center justify-center gap-1">
+            <span className="text-2xl font-bold text-gray-900">{data.matchName}</span>
+            {data.matchUser?.age && (
+              <span className="text-sm font-medium text-muted-foreground bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
+                Age {data.matchUser.age}
+              </span>
+            )}
+          </div>
+          <p className="text-xl text-muted-foreground mt-2">
+            at <span className="font-bold">{data.meetLocation}</span>
+          </p>
+        </div>
+
         <p className="text-2xl font-bold text-emerald-600">Lessgoo! 🚀</p>
 
         <Card className="border-2 border-emerald-100 shadow-xl">
@@ -67,11 +101,21 @@ export default function ActivitiesConnectedPage() {
           </CardContent>
         </Card>
 
-        <Link href="/categories">
-          <Button variant="outline" className="w-full">
-            Back to Categories
+        <div className="space-y-3">
+          <Button
+            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
+            size="lg"
+            onClick={() => setShowChat(true)}
+          >
+            Join Chat & Plan
           </Button>
-        </Link>
+
+          <Link href="/categories">
+            <Button variant="outline" className="w-full">
+              Back to Categories
+            </Button>
+          </Link>
+        </div>
       </div>
     </div>
   );

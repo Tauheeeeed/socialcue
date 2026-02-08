@@ -102,7 +102,7 @@ export default function MeetPage() {
                   <SelectTrigger>
                     <SelectValue placeholder="Select duration" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-white">
                     <SelectItem value="30">30 minutes</SelectItem>
                     <SelectItem value="60">1 hour</SelectItem>
                     <SelectItem value="90">1.5 hours</SelectItem>
@@ -114,7 +114,7 @@ export default function MeetPage() {
 
               <div className="space-y-3">
                 <Button
-                  className="w-full h-14 text-lg bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 shadow-lg shadow-violet-500/30"
+                  className="w-full h-auto py-4 text-base md:text-lg whitespace-normal leading-tight bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 shadow-lg shadow-violet-500/30"
                   onClick={handleSimilarInterests}
                   disabled={loading || !duration}
                 >
@@ -158,8 +158,8 @@ export default function MeetPage() {
                         {/* Fill based on value */}
                         <div
                           className={`h-full transition-all duration-300 ${surpriseLevel === 1 ? "bg-orange-300 w-[0%]" :
-                              surpriseLevel === 2 ? "bg-orange-500 w-[50%]" :
-                                "bg-red-600 w-[100%]"
+                            surpriseLevel === 2 ? "bg-orange-500 w-[50%]" :
+                              "bg-red-600 w-[100%]"
                             }`}
                         />
                       </div>

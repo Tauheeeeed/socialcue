@@ -17,6 +17,7 @@ interface ProfileData {
   likes: string[];
   dislikes: string[];
   about: string;
+  acceptedGuidelines?: boolean;
   stats: {
     events: number;
     connections: number;
@@ -81,12 +82,14 @@ export default function ProfilePage() {
     <ProfileView
       userName={profile.name}
       age={profile.age.toString()}
+      gender={profile.gender}
       location={profile.location}
       category="General"
       achievements={achievements}
       stats={profile.stats}
       about={profile.about}
       interests={profile.interests}
+      acceptedGuidelines={profile.acceptedGuidelines}
       onBack={() => router.push("/categories")}
       onViewBadges={() => setView("badges")}
     />

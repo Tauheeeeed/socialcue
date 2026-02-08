@@ -11,6 +11,8 @@ import {
     Trophy,
     Lock,
     Sparkles,
+    User,
+    ShieldCheck,
 } from "lucide-react"
 import { UserAchievement } from "@/lib/achievements"
 
@@ -23,12 +25,14 @@ export interface ProfileStats {
 interface ProfileViewProps {
     userName: string
     age: string
+    gender?: string
     location: string
     category: string
     achievements: UserAchievement[]
     stats: ProfileStats
     about: string
     interests: string[]
+    acceptedGuidelines?: boolean
     onBack: () => void
     onViewBadges?: () => void
 }
@@ -36,12 +40,14 @@ interface ProfileViewProps {
 export function ProfileView({
     userName,
     age,
+    gender,
     location,
     category,
     achievements,
     stats,
     about,
     interests,
+    acceptedGuidelines,
     onBack,
     onViewBadges,
 }: ProfileViewProps) {
@@ -88,9 +94,23 @@ export function ProfileView({
                                         <Sparkles className="h-3.5 w-3.5 fill-current" />
                                     </div>
                                 </div>
-                                <div className="mt-1 flex items-center gap-2 text-muted-foreground">
-                                    <MapPin className="h-4 w-4" />
-                                    <span>{location || "San Francisco, CA"}</span>
+                                <div className="flex flex-col gap-1 mt-1 text-muted-foreground">
+                                    <div className="flex items-center gap-2">
+                                        <MapPin className="h-4 w-4" />
+                                        <span>{location || "San Francisco, CA"}</span>
+                                    </div>
+                                    {gender && (
+                                        <div className="flex items-center gap-2 text-sm">
+                                            <User className="h-4 w-4" />
+                                            <span>{gender}</span>
+                                        </div>
+                                    )}
+                                    {acceptedGuidelines && (
+                                        <div className="flex items-center gap-2 text-xs text-green-600 font-medium mt-1">
+                                            <ShieldCheck className="h-3.5 w-3.5" />
+                                            <span>Guidelines Accepted</span>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="mt-6 flex w-full justify-between px-4">

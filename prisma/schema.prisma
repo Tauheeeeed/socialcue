@@ -25,6 +25,7 @@ model User {
   ActivityRequest       ActivityRequest[]
   MeetRequestsSent      MeetRequest[]  @relation("MeetRequester")
   MeetRequestsReceived  MeetRequest[]  @relation("MeetReceiver")
+  ChatMessages          ChatMessage[]
 }
 
 model MeetRequest {
@@ -38,6 +39,18 @@ model MeetRequest {
   createdAt       DateTime @default(now())
   requester       User     @relation("MeetRequester", fields: [requesterId], references: [id], onDelete: Cascade)
   receiver        User     @relation("MeetReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  ChatMessages    ChatMessage[]
+  ActivityRequests ActivityRequest[]
+}
+
+model ChatMessage {
+  id        String      @id @default(cuid())
+  meetId    String
+  senderId  String
+  content   String
+  createdAt DateTime    @default(now())
+  Meet      MeetRequest @relation(fields: [meetId], references: [id], onDelete: Cascade)
+  Sender    User        @relation(fields: [senderId], references: [id], onDelete: Cascade)
 }
 
 model ActivityRequest {
@@ -47,7 +60,9 @@ model ActivityRequest {
   status            String   // "searching" | "matched"
   matchedWithUserId String?
   createdAt         DateTime @default(now())
+  meetRequestId     String?
   User              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  MeetRequest       MeetRequest? @relation(fields: [meetRequestId], references: [id])
 }
 
 model Match {
