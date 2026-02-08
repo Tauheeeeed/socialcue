@@ -81,7 +81,13 @@ export function ProfileView({
                                     </button>
                                 </div>
 
-                                <h2 className="text-2xl font-bold text-foreground">{userName}</h2>
+                                <div className="flex items-center gap-2">
+                                    <h2 className="text-2xl font-bold text-foreground">{userName}</h2>
+                                    {/* Verified Badge */}
+                                    <div className="flex items-center justify-center h-6 w-6 rounded-full bg-blue-500 text-white shadow-sm" title="Community Verified">
+                                        <Sparkles className="h-3.5 w-3.5 fill-current" />
+                                    </div>
+                                </div>
                                 <div className="mt-1 flex items-center gap-2 text-muted-foreground">
                                     <MapPin className="h-4 w-4" />
                                     <span>{location || "San Francisco, CA"}</span>

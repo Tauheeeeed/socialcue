@@ -29,7 +29,7 @@ export async function POST(request: Request) {
         status: "searching",
         userId: { not: userId },
       },
-      include: { user: true },
+      include: { User: true },
     });
 
     let requestId: string;

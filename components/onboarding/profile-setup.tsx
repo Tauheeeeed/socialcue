@@ -4,7 +4,7 @@ import { useState } from "react"
 import { ArrowRight, User } from "lucide-react"
 
 interface ProfileSetupProps {
-    onNext: (data: { name: string; age: string; location: string }) => void
+    onNext: (data: { name: string; age: string; location: string; acceptedGuidelines: boolean }) => void
     initialName?: string
     email?: string
 }
@@ -17,7 +17,7 @@ export function ProfileSetup({ onNext, initialName, email }: ProfileSetupProps) 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
         if (name && age && location) {
-            onNext({ name, age, location })
+            onNext({ name, age, location, acceptedGuidelines: true })
         }
     }
 

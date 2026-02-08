@@ -17,6 +17,7 @@ export function AppContent({ user, email }: AppContentProps) {
         name: string
         age: string
         location: string
+        acceptedGuidelines: boolean
     }) => {
         try {
             const response = await fetch("/api/onboarding", {
@@ -28,7 +29,7 @@ export function AppContent({ user, email }: AppContentProps) {
             if (response.ok) {
                 const { id } = await response.json()
                 localStorage.setItem("socialcue_user_id", id)
-                router.push("/chat")
+                router.push("/categories")
             } else {
                 console.error("Failed to save profile")
             }
