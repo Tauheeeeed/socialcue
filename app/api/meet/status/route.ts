@@ -37,8 +37,11 @@ export async function GET(request: Request) {
       );
     }
 
+    const currentUser = meet.requesterId === userId ? meet.requester : meet.receiver;
+
     return NextResponse.json({
       matchName: otherUser.name,
+      userName: currentUser.name,
       meetLocation: meet.meetLocation,
     });
   } catch (error) {

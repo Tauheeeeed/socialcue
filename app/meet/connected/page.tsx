@@ -7,15 +7,19 @@ import { Card, CardContent } from "@/components/ui/card";
 import { MapPin, PartyPopper } from "lucide-react";
 import Link from "next/link";
 
+import { ChatRoom } from "@/components/chat-room";
+
 export default function ConnectedPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const matchId = searchParams.get("matchId");
   const [data, setData] = useState<{
     matchName: string;
+    userName: string;
     meetLocation: string;
   } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showChat, setShowChat] = useState(false);
 
   useEffect(() => {
     if (!matchId) {
@@ -42,6 +46,17 @@ export default function ConnectedPage() {
     );
   }
 
+  if (showChat) {
+    return (
+      <ChatRoom
+        userName={data.userName || "Me"}
+        matchName={data.matchName}
+        matchId={matchId || ""}
+        onBack={() => setShowChat(false)}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-fuchsia-50 flex flex-col items-center justify-center p-6">
       <div className="max-w-md w-full space-y-6 animate-fade-in text-center">
@@ -65,11 +80,20 @@ export default function ConnectedPage() {
           </CardContent>
         </Card>
 
-        <Link href="/categories">
-          <Button variant="outline" className="w-full">
-            Back to Categories
+        <div className="space-y-3">
+          <Button
+            className="w-full h-12 text-lg bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 shadow-lg"
+            onClick={() => setShowChat(true)}
+          >
+            Join Chat & Plan
           </Button>
-        </Link>
+
+          <Link href="/categories" className="block">
+            <Button variant="outline" className="w-full h-12">
+              Back to Categories
+            </Button>
+          </Link>
+        </div>
       </div>
     </div>
   );

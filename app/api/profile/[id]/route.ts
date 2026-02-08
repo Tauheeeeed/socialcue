@@ -10,6 +10,7 @@ export async function GET(
 
     const user = await prisma.user.findUnique({
       where: { id },
+      include: { UserProfile: true },
     });
 
     if (!user) {
@@ -19,15 +20,31 @@ export async function GET(
       );
     }
 
+    const profileData = (user.UserProfile?.profile as any) || {};
+
     return NextResponse.json({
       id: user.id,
       name: user.name,
       age: user.age,
       gender: user.gender,
       location: user.location,
-      interests: user.interests,
-      likes: user.likes,
-      dislikes: user.dislikes,
+      acceptedGuidelines: user.acceptedGuidelines,
+      interests: profileData.interests || [],
+      likes: profileData.likes || [],
+      dislikes: profileData.dislikes || [],
+      about: profileData.about || "Passionate about community service and meeting new people. Always up for a coffee chat or a weekend cleanup drive!",
+      stats: profileData.stats || {
+        events: 12,
+        connections: 48,
+        rating: 4.9,
+      },
+      progress: profileData.progress || {
+        communityEvents: 0,
+        peopleMet: 0,
+        activitiesHosted: 0,
+        messagesSent: 0,
+        daysActive: 0,
+      },
     });
   } catch (error) {
     console.error("Profile fetch error:", error);

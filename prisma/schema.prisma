@@ -8,15 +8,61 @@ datasource db {
 }
 
 model User {
-  id          String        @id @default(cuid())
-  auth0Sub    String?       @unique
-  name        String?
-  age         Int?
-  gender      String?
-  location    String?
-  createdAt   DateTime      @default(now())
-  UserMessage UserMessage[]
-  UserProfile UserProfile?
+  id                    String         @id @default(cuid())
+  auth0Sub              String?        @unique
+  name                  String?
+  age                   Int?
+  gender                String?
+  location              String?
+  interests             String[]      @default([])
+  likes                 String[]      @default([])
+  dislikes              String[]      @default([])
+  profileReady          Boolean        @default(false)
+  acceptedGuidelines    Boolean        @default(false)
+  createdAt             DateTime       @default(now())
+  UserMessage           UserMessage[]
+  UserProfile           UserProfile?
+  ActivityRequest       ActivityRequest[]
+  MeetRequestsSent      MeetRequest[]  @relation("MeetRequester")
+  MeetRequestsReceived  MeetRequest[]  @relation("MeetReceiver")
+  ChatMessages          ChatMessage[]
+}
+
+model MeetRequest {
+  id              String   @id @default(cuid())
+  requesterId     String
+  receiverId      String
+  meetLocation    String
+  durationMinutes Int      @default(60)
+  surpriseMe      Boolean  @default(false)
+  status          String   @default("accepted")
+  createdAt       DateTime @default(now())
+  requester       User     @relation("MeetRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  receiver        User     @relation("MeetReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  ChatMessages    ChatMessage[]
+  ActivityRequests ActivityRequest[]
+}
+
+model ChatMessage {
+  id        String      @id @default(cuid())
+  meetId    String
+  senderId  String
+  content   String
+  createdAt DateTime    @default(now())
+  Meet      MeetRequest @relation(fields: [meetId], references: [id], onDelete: Cascade)
+  Sender    User        @relation(fields: [senderId], references: [id], onDelete: Cascade)
+}
+
+model ActivityRequest {
+  id                String   @id @default(cuid())
+  userId            String
+  sport             String
+  status            String   // "searching" | "matched"
+  matchedWithUserId String?
+  createdAt         DateTime @default(now())
+  meetRequestId     String?
+  User              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  MeetRequest       MeetRequest? @relation(fields: [meetRequestId], references: [id])
 }
 
 model Match {
