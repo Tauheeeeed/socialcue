@@ -27,8 +27,8 @@ export default async function HomePage() {
       return <AppContent user={session.user} email={session.user.email} />;
     }
 
-    // Form done, profile ready → go to categories
-    redirect("/categories");
+    // Form done, chat not done → go to chat
+    redirect("/chat");
   }
 
   return (
